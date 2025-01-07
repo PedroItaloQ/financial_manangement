@@ -1,17 +1,17 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import coinLogo from "../../public/coinLogo.png";
+import coinLogo from "../../public/logoWP.svg";
 
 const Navbar = () => {
   return (
-    <nav className="bg-gray-50 p-4 text-gray-700"> {/* Mudança de cor para destacar */}
-      <ul className="flex space-x-4">
-      <Image src={coinLogo} height={40} width={40} alt='moeda' />
-        <li><Link href="/home" className="hover:underline">Home</Link></li>
-        <li><Link href="/dashboard" className="hover:underline">Dashboard</Link></li>
-        <li><Link href="#" className="hover:underline">Sobre</Link></li>
-        <li><Link href="#" className="hover:underline">Contato</Link></li>
-      </ul>
+    <nav className="bg-background p-4 text-foreground flex items-center justify-between">
+      <div>
+        <Image src={coinLogo} height={100} width={100} alt="moeda" />
+      </div>
+      
+      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+        PI
+      </div>
     </nav>
   );
 };
