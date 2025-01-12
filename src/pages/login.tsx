@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
-import image from "../../public/imageFinance.jpg";
+import image from "../../public/imageFinance 1.svg";
+import logoWP from "../../public/logoWP.svg";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,11 +15,10 @@ const Login = () => {
 
   return (
     <div className="flex h-screen bg-white">
-      {/* Lado esquerdo - Formulário */}
-      <div className="w-full md:w-1/3 flex flex-col justify-center items-center">
-        <h2 className="text-3xl font-bold mb-8 text-gray-500 ">Login</h2>
+      <div className="w-full flex flex-col justify-center items-center">
+      <Image alt='logoWP' height={150} width={150} src={logoWP}/>
         <form onSubmit={handleSubmit} className="w-3/4 max-w-md">
-          <div className="mb-4">
+          <div className="mt-5 mb-4">
             {/* <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
             </label> */}
@@ -57,16 +57,6 @@ const Login = () => {
             Entrar
           </button>
         </form>
-      </div>
-
-      {/* Lado direito - Imagem */}
-      <div className="hidden md:block w-full md:w-2/3 relative">
-        <Image
-          src={image}
-          alt="Imagem ilustrativa"
-          layout="fill"
-          objectFit="cover"
-        />
       </div>
     </div>
   );
