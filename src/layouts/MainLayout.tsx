@@ -1,16 +1,18 @@
-// layouts/MainLayout.tsx
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen text-foreground bg-gradient-to-tr from-[#B2C0FF] to-[#F6F6F6]">
+      {/* Navbar no topo */}
       <Navbar />
       <div className="flex flex-grow h-full">
+        {/* Sidebar fixa na esquerda */}
         <Sidebar />
-        <main className="flex-grow p-4 ">
-            {children}
-        </main>
+        {/* Conteúdo flexível à direita */}
+        <div className="flex-grow p-6 overflow-auto">
+          {children}
+        </div>
       </div>
     </div>
   );
