@@ -1,12 +1,15 @@
 // pages/index.tsx
+import Image from 'next/image';
 import MainLayout from '../layouts/MainLayout';
+import graphic from "../../public/grafico 2.svg"
 
 const Home = () => {
   return (
     <MainLayout>
-      <main className='bg-white rounded-[40px] border border-gray-300 shadow-lg p-2'>
-        <h2 className="text-2xl font-bold text-gray-400">Bem-vindo à sua página inicial, NOME!</h2>
-      </main>
+        <h2 className="flex text-2xl font-bold text-gray-700">Bem-vindo à sua página inicial, <h2 className='text-blue-600'>Pedro Italo!</h2></h2>
+        <p className='mt-4 text-gray-500'>Aqui voce pode gerenciar suas finanças, ver dashboard e muito mais!</p>
+
+        <Image className='mt-10' alt='graphic' height={200} width={500} src={graphic} />
     </MainLayout>
   );
 };
