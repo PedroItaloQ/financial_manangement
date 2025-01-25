@@ -22,7 +22,6 @@ const Movimentacoes = () => {
           Aqui você pode gerenciar suas finanças, ver dashboards, relatórios e muito mais!
         </p>
 
-        {/* Estatísticas */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
           {estatisticas.map((item, index) => (
             <div key={index} className="p-4 border rounded-lg shadow-sm bg-white">
@@ -35,7 +34,6 @@ const Movimentacoes = () => {
           ))}
         </div>
 
-        {/* Tabela de Transações Recentes */}
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Transações Recentes</h3>
           <div className="overflow-x-auto">

@@ -1,4 +1,3 @@
-// pages/index.tsx
 import Image from 'next/image';
 import MainLayout from '../layouts/MainLayout';
 import graphic from "../../public/grafico 2.svg"
