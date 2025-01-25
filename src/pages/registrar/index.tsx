@@ -1,106 +1,143 @@
 import Image from 'next/image';
 import { useState } from 'react';
-import image from "../../../public/imageFinance 1.svg";
+import Modal from "@/components/ModalValidation";
 import logoWP from "../../../public/logoWP.svg";
+import { CreateUser } from "@/utils/user/CreateUser";
 
 const Register = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+    });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [modalMessage, setModalMessage] = useState<string | null>(null);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log({ email, password });
+
+        const { firstName, lastName, email, password, confirmPassword } = formData;
+
+        // Validação da senha e confirmação
+        if (password !== confirmPassword) {
+            setModalMessage('As senhas não coincidem.');
+            return;
+        }
+
+        try {
+            // Criando o username concatenando firstName e lastName
+            const username = `${firstName} ${lastName}`.trim();
+
+            // Dados a serem enviados
+            const user = { username, email, password };
+
+            const response = await CreateUser(user);
+            if (response.status === 201) {
+                setModalMessage('Usuário registrado com sucesso!');
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    password: '',
+                    confirmPassword: '',
+                });
+            }
+        } catch (error) {
+            console.error('Erro ao registrar usuário:', error);
+            setModalMessage('Ocorreu um erro ao registrar o usuário. Tente novamente.');
+        }
     };
 
     return (
-        <div className="flex h-screen bg-white">
-
-            <div className="w-full md:w-1/3 flex flex-col justify-center items-center">
-                <Image alt='logoWP' height={150} width={150} src={logoWP} />
-                <form onSubmit={handleSubmit} className="w-3/4 max-w-md">
-                    <div className='flex gap-x-4'>
-                        <div className="mt-5">
+        <div className="flex h-screen bg-gradient-to-tr from-[#B2C0FF] to-[#F6F6F6] items-center justify-center">
+            <div className="w-full max-w-md bg-white border border-gray-300 rounded-lg shadow-md p-8">
+                <div className="flex justify-center mb-6">
+                    <Image alt="logoWP" height={150} width={150} src={logoWP} />
+                </div>
+                <form onSubmit={handleSubmit}>
+                    <div className="flex gap-2">
+                        <div className="mb-4">
                             <input
-                                type="firstName"
-                                id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                                type="text"
+                                name="firstName"
+                                value={formData.firstName}
+                                onChange={handleInputChange}
+                                className="mt-1 p-2 block w-full border border-gray-300 rounded-md text-gray-900"
                                 placeholder="Nome"
                                 required
                             />
                         </div>
-                        <div className="mt-5">
-
+                        <div className="mb-4">
                             <input
-                                type="lastName"
-                                id="lastName"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                                type="text"
+                                name="lastName"
+                                value={formData.lastName}
+                                onChange={handleInputChange}
+                                className="mt-1 p-2 block w-full border border-gray-300 rounded-md text-gray-900"
                                 placeholder="Sobrenome"
                                 required
                             />
                         </div>
                     </div>
-                    <div className="mt-5 mb-4">
-
+                    <div className="mb-4">
                         <input
                             type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-                            placeholder="Digite seu email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md text-gray-900"
+                            placeholder="Email"
                             required
                         />
                     </div>
-
                     <div className="mb-4">
-                        {/* <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Senha
-            </label> */}
                         <input
                             type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-                            placeholder="Digite sua senha"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md text-gray-900"
+                            placeholder="Senha"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        {/* <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Senha
-            </label> */}
+                    <div className="mb-4">
                         <input
                             type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleInputChange}
+                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md text-gray-900"
                             placeholder="Confirmar senha"
                             required
                         />
                     </div>
                     <button
                         type="submit"
-                        className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-300"
+                        className="button-primary bg-blue-700 text-white p-2 rounded-lg w-full"
                     >
-                        Entrar
+                        Registrar
                     </button>
                 </form>
             </div>
 
-            <div className="hidden md:block w-full md:w-2/3 relative">
-                <Image
-                    src={image}
-                    alt="Imagem ilustrativa"
-                    layout="fill"
-                    objectFit="cover"
+            {/* Exibir o modal se houver uma mensagem */}
+            {modalMessage && (
+                <Modal
+                    message={modalMessage}
+                    onClose={() => setModalMessage(null)} // Fecha o modal ao clicar em "Fechar"
                 />
-            </div>
+            )}
         </div>
     );
 };
