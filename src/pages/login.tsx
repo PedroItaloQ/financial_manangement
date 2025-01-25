@@ -1,51 +1,62 @@
 import Image from 'next/image';
 import { useState } from 'react';
-import image from "../../public/imageFinance 1.svg";
+import { useRouter } from 'next/router';
+import Modal from "@/components/ModalValidation";
 import logoWP from "../../public/logoWP.svg";
+import { PostLogin } from "@/utils/auth/PostLogin";
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Adicione aqui sua lógica de autenticação
-    console.log({ email, password });
+    setModalMessage(null);
+
+    try {
+      const credentials = { email, password };
+      const response = await PostLogin(credentials);
+
+      console.log("Login bem-sucedido:", response.data);
+
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error("Erro ao fazer login:", error.response?.data || error.message);
+      setModalMessage(error.response?.data?.message || "Erro ao fazer login.");
+    }
   };
 
   return (
-    <div className="flex h-screen bg-white">
-      <div className="w-full flex flex-col justify-center items-center">
-      <Image alt='logoWP' height={150} width={150} src={logoWP}/>
-        <form onSubmit={handleSubmit} className="w-3/4 max-w-md">
-          <div className="mt-5 mb-4">
-            {/* <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </label> */}
+    <div className="flex h-screen bg-gradient-to-tr from-[#B2C0FF] to-[#F6F6F6] items-center justify-center">
+      <div className="w-full max-w-md bg-white border border-white rounded-lg shadow-md p-8">
+        <div className="flex justify-center mb-6">
+          <Image alt="logoWP" height={150} width={150} src={logoWP} />
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="mt-10 mb-4">
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md text-gray-600"
               placeholder="Digite seu email"
               required
             />
           </div>
-          <div className='flex justify-end href="#"'>
-            <a className='text-blue-500 underline cursor-pointer text-sm'>esqueci a Senha</a>
+          <div className="flex justify-end">
+            <a className="text-blue-500 underline cursor-pointer text-sm">Esqueci a Senha</a>
           </div>
-
           <div className="mb-6">
-            {/* <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Senha
-            </label> */}
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md text-gray-600"
               placeholder="Digite sua senha"
               required
             />
@@ -58,6 +69,13 @@ const Login = () => {
           </button>
         </form>
       </div>
+
+      {modalMessage && (
+        <Modal
+          message={modalMessage}
+          onClose={() => setModalMessage(null)}
+        />
+      )}
     </div>
   );
 };
