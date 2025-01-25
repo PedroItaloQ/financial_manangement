@@ -28,17 +28,14 @@ const Register = () => {
 
         const { firstName, lastName, email, password, confirmPassword } = formData;
 
-        // Validação da senha e confirmação
         if (password !== confirmPassword) {
             setModalMessage('As senhas não coincidem.');
             return;
         }
 
         try {
-            // Criando o username concatenando firstName e lastName
             const username = `${firstName} ${lastName}`.trim();
 
-            // Dados a serem enviados
             const user = { username, email, password };
 
             const response = await CreateUser(user);
@@ -131,11 +128,10 @@ const Register = () => {
                 </form>
             </div>
 
-            {/* Exibir o modal se houver uma mensagem */}
             {modalMessage && (
                 <Modal
                     message={modalMessage}
-                    onClose={() => setModalMessage(null)} // Fecha o modal ao clicar em "Fechar"
+                    onClose={() => setModalMessage(null)}
                 />
             )}
         </div>
