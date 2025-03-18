@@ -28,11 +28,13 @@ const TotalBalance = () => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md flex justify-between items-center w-full">
-      <h3 className="text-lg font-semibold text-gray-700">Saldo Total</h3>
-      <span className={`text-2xl font-bold ${totalBalance! >= 0 ? "text-green-600" : "text-red-600"}`}>
-        R$ {totalBalance !== null ? totalBalance.toFixed(2) : "Carregando..."}
-      </span>
+    <div className="flex justify-end w-full px-6 mt-4">
+      <div className="bg-white p-4 rounded-lg shadow-md w-80">
+        <h3 className="text-lg font-semibold text-gray-700">Saldo Total</h3>
+        <span className={`text-2xl font-bold ${totalBalance! >= 0 ? "text-green-600" : "text-red-600"}`}>
+          R$ {totalBalance !== null ? totalBalance.toFixed(2) : "Carregando..."}
+        </span>
+      </div>
     </div>
   );
 };
