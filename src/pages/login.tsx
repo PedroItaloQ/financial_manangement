@@ -22,6 +22,8 @@ const Login = () => {
 
       console.log("Login bem-sucedido:", response.data);
 
+      localStorage.setItem("username", response.data.user.username);
+
       router.push('/dashboard');
     } catch (error: any) {
       console.error("Erro ao fazer login:", error.response?.data || error.message);
@@ -30,8 +32,8 @@ const Login = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-tr from-[#B2C0FF] to-[#F6F6F6] items-center justify-center">
-      <div className="w-full max-w-md bg-white border border-white rounded-lg shadow-md p-8">
+    <div className="flex items-center justify-center">
+      <div className="w-full max-w-md bg-white border border-white rounded-lg shadow-md p-20">
         <div className="flex justify-center mb-6">
           <Image alt="logoWP" height={150} width={150} src={logoWP} />
         </div>
@@ -42,7 +44,7 @@ const Login = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md text-gray-600"
+              className="mt-1 p-3 block w-96 max-w-full border border-gray-300 rounded-md text-gray-600"
               placeholder="Digite seu email"
               required
             />
@@ -56,7 +58,7 @@ const Login = () => {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md text-gray-600"
+              className="mt-1 p-3 block w-96 max-w-full border border-gray-300 rounded-md text-gray-600"
               placeholder="Digite sua senha"
               required
             />

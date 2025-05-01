@@ -1,73 +1,266 @@
-import MainLayout from '../../layouts/MainLayout';
+import { useState, useEffect } from "react";
+import MainLayout from "../../layouts/MainLayout";
+import CreateExpenseModal from "@/components/CreateExpenseModal";
+import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
+import api from "@/utils/post";
+import EditExpenseModal from "@/components/EditExpenseModal";
+import SuccessModal from "@/components/SuccessModal";
+
+interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  createdAt: string;
+  category: { id: string; name: string };
+  addedBy: { id: string; username: string };
+}
 
 const Movimentacoes = () => {
-  const estatisticas = [
-    { titulo: 'Receitas', valor: 'R$ 12.450,00', variacao: '+12%' },
-    { titulo: 'Despesas', valor: 'R$ 8.320,00', variacao: '-5%' },
-    { titulo: 'Saldo Atual', valor: 'R$ 4.130,00', variacao: '+20%' },
-  ];
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [categories, setCategories] = useState<{ _id: string; name: string }[]>([]);
+  const [users, setUsers] = useState<{ _id: string; username: string }[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false); // Modal de sucesso para criação
 
-  const transacoesRecentes = [
-    { id: 1, descricao: 'Venda de Produto', valor: 'R$ 2.500,00', data: '2024-12-21' },
-    { id: 2, descricao: 'Compra de Material', valor: '-R$ 1.200,00', data: '2024-12-20' },
-    { id: 3, descricao: 'Pagamento de Cliente', valor: 'R$ 3.000,00', data: '2024-12-19' },
-    { id: 4, descricao: 'Assinatura de Serviço', valor: '-R$ 150,00', data: '2024-12-18' },
-  ];
+  // Filtros
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<string>("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  
+  // Modal de edição
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+
+  const handleOpenEditModal = (expense: Expense) => {
+    console.log("🚀 Abertura do modal com:", expense);
+    setSelectedExpense(expense);
+    setIsEditModalOpen(true);
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+    fetchCategories();
+    fetchUsers();
+  }, [page, selectedCategory, selectedUser]);
+
+  const fetchExpenses = async () => {
+    try {
+      const { data } = await api.get(`/expenses?page=${page}&limit=10`, {
+        params: {
+          categoryId: selectedCategory || undefined,
+          userId: selectedUser || undefined,
+        },
+      });
+      setExpenses(data.expenses);
+      setTotalPages(data.totalPages);
+    } catch (error) {
+      console.error("Erro ao buscar movimentações:", error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await api.get("/categories");
+      setCategories(data);
+    } catch (error) {
+      console.error("Erro ao buscar categorias:", error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const { data } = await api.get("/users");
+      setUsers(data.map((user: { _id: string; username: string }) => ({ _id: user._id, username: user.username })));
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
+    }
+  };
+
+  const handleCreateExpense = async (categoryId: string, amount: number, description: string) => {
+    if (!categoryId || !amount || !description) {
+      console.error("❌ Todos os campos são obrigatórios.");
+      return;
+    }
+    try {
+      await api.post("/expenses/add", { categoryId, amount, description });
+      fetchExpenses();
+      setShowSuccess(true); // Exibe modal de sucesso
+    } catch (error) {
+      console.error("❌ Erro ao adicionar movimentação:", error);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSelectedCategory("");
+    setSelectedUser("");
+    setPage(1);
+  };
+
+  const handleSaveExpense = async (id: string, description: string, amount: number, categoryId: string) => {
+    console.log("🛠️ Tentando atualizar despesa...");
+    console.log("📌 ID recebido:", id);
+    console.log("📌 Descrição recebida:", description);
+    console.log("📌 Valor recebido:", amount);
+    console.log("📌 Categoria ID recebida:", categoryId);
+
+    if (!id || !description.trim() || isNaN(amount) || !categoryId) {
+      console.error("❌ Erro: Algum campo está vazio ou inválido.");
+      console.log({ id, description, amount, categoryId });
+      return;
+    }
+
+    try {
+      console.log(`✅ Enviando atualização para a despesa ${id}:`, { description, amount, categoryId });
+      await api.put(`/expenses/${id}`, { description, amount: Number(amount), categoryId });
+      fetchExpenses();
+      // Não fechamos o modal de edição automaticamente
+    } catch (error) {
+      console.error("❌ Erro ao atualizar movimentação:", error);
+    }
+  };
 
   return (
     <MainLayout>
       <div className="w-full px-6 mt-10">
-        <h2 className="text-2xl font-bold text-gray-700">Bem-vindo à sua página inicial, Pedro Italo!</h2>
-        <p className="mt-4 text-gray-500">
-          Aqui você pode gerenciar suas finanças, ver dashboards, relatórios e muito mais!
-        </p>
+        <h2 className="text-2xl font-bold text-gray-700">Minhas Movimentações</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-          {estatisticas.map((item, index) => (
-            <div key={index} className="p-4 border rounded-lg shadow-sm bg-white">
-              <h3 className="text-gray-600 font-semibold">{item.titulo}</h3>
-              <p className="text-2xl font-bold text-gray-800 mt-2">{item.valor}</p>
-              <p className={`mt-1 text-sm ${item.variacao.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                {item.variacao}
-              </p>
-            </div>
-          ))}
-        </div>
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-4"
+          onClick={() => setIsModalOpen(true)}
+        >
+          Adicionar Movimentação
+        </button>
 
         <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Transações Recentes</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-700">Transações Recentes</h3>
+            <div className="flex space-x-4">
+              <select
+                className="border text-gray-600 border-gray-300 p-2 rounded"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="">Todas as Categorias</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="border text-gray-600 border-gray-300 p-2 rounded"
+                value={selectedUser}
+                onChange={(e) => setSelectedUser(e.target.value)}
+              >
+                <option value="">Todos os Usuários</option>
+                {users.map((user) => (
+                  <option key={user._id} value={user._id}>
+                    {user.username}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+                onClick={handleClearFilters}
+              >
+                Limpar Filtros
+              </button>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse border border-gray-200">
+            <table className="min-w-full border-collapse border-b border-gray-200">
               <thead className="bg-gray-100">
                 <tr className="text-sm text-gray-700">
-                  <th className="border-b border-r border-gray-400 px-4 py-2 text-center">Data</th>
-                  <th className="border-b border-r border-gray-400 px-4 py-2 text-center">Descrição</th>
+                  <th className="border-b border-gray-400 px-4 py-2 text-center">Data</th>
+                  <th className="border-b border-gray-400 px-4 py-2 text-center">Descrição</th>
+                  <th className="border-b border-gray-400 px-4 py-2 text-center">Categoria</th>
+                  <th className="border-b border-gray-400 px-4 py-2 text-center">Usuário</th>
                   <th className="border-b border-gray-400 px-4 py-2 text-center">Valor</th>
+                  <th className="border-b border-gray-400 px-4 py-2 text-center"></th>
                 </tr>
               </thead>
               <tbody>
-                {transacoesRecentes.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
-                    <td className="border border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
-                      {item.data}
-                    </td>
-                    <td className="border border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
-                      {item.descricao}
-                    </td>
-                    <td
-                      className={`border border-gray-300 px-4 py-2 text-center text-sm ${
-                        item.valor.startsWith('-') ? 'text-red-500' : 'text-green-500'
-                      }`}
-                    >
-                      {item.valor}
+                {expenses.length > 0 ? (
+                  expenses.map((item) => (
+                    <tr key={item.id} className="transition duration-150 ease-in-out">
+                      <td className="border-b border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
+                        {new Date(item.createdAt).toLocaleDateString("pt-BR")}
+                      </td>
+                      <td className="border-b border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
+                        {item.description}
+                      </td>
+                      <td className="border-b border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
+                        {item.category?.name || "Sem Categoria"}
+                      </td>
+                      <td className="border-b border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
+                        {item.addedBy?.username || "Desconhecido"}
+                      </td>
+                      <td className={`border-b border-gray-300 px-4 py-2 text-center text-sm ${item.amount < 0 ? "text-red-500" : "text-green-500"}`}>
+                        R$ {item.amount.toFixed(2)}
+                      </td>
+                      <td className="border-b border-gray-300 px-4 py-2 text-center text-sm">
+                        <ChevronRight
+                          className="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg hover:cursor-pointer transition duration-150"
+                          onClick={() => handleOpenEditModal(item)}
+                        />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="text-center py-4 text-gray-500">
+                      Nenhuma movimentação encontrada
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
+
+          <div className="flex justify-center items-center space-x-2 mt-4">
+            <button
+              className={`px-2 py-1 rounded flex items-center ${page === 1 ? "text-gray-600 cursor-not-allowed" : "text-gray-600 hover:bg-gray-200"}`}
+              disabled={page === 1}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <span className="text-gray-700 font-semibold">
+              Página {page} de {totalPages}
+            </span>
+            <button
+              className={`px-2 py-1 rounded flex items-center ${page === totalPages ? "text-gray-600 cursor-not-allowed" : "text-gray-600 hover:bg-gray-200"}`}
+              disabled={page === totalPages}
+              onClick={() => setPage((prev) => prev + 1)}
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
+
+      <CreateExpenseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreateExpense={handleCreateExpense}
+        categories={categories}
+      />
+
+      <EditExpenseModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        expense={selectedExpense}
+        onSave={handleSaveExpense}
+        categories={categories}
+      />
+
+      <SuccessModal
+        isOpen={showSuccess}
+        message="Movimentação criada com sucesso!"
+        onClose={() => setShowSuccess(false)}
+      />
     </MainLayout>
   );
 };

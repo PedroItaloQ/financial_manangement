@@ -1,12 +1,51 @@
+import { useState, useEffect } from "react";
 import MainLayout from "@/layouts/MainLayout";
+import CategoryModal from "@/components/CreateCategoryModal";
+import SuccessModal from "@/components/SuccessModal"; // ✅ Importação do modal de sucesso
+import api from "@/utils/post";
+
+interface Category {
+    id: string;
+    name: string;
+    createdAt: string;
+    createdBy: {
+        username: string;
+        email: string;
+    };
+}
 
 const Categories = () => {
-    const historico = [
-        { id: 1, data: "2024-12-20", descricao: "Alteração no título do projeto" },
-        { id: 2, data: "2024-12-21", descricao: "Adicionado campo de responsável" },
-        { id: 3, data: "2024-12-22", descricao: "Removido botão de salvar" },
-        { id: 4, data: "2024-12-23", descricao: "Ajustado layout do formulário" },
-    ];
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false); // ✅ Estado para controlar o modal de sucesso
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const { data } = await api.get("/categories");
+            setCategories(Array.isArray(data) ? data : []);
+        } catch (error: any) {
+            if (error.response?.status === 401) {
+                console.error("⚠️ Não autorizado! O cookie de autenticação não está sendo enviado.");
+            } else {
+                console.error("Erro ao buscar categorias:", error);
+            }
+            setCategories([]);
+        }
+    };
+
+    const handleCreateCategory = async (name: string) => {
+        try {
+            await api.post("/categories/create", { name });
+            fetchCategories();
+            setShowSuccess(true); // ✅ Exibe o modal de sucesso
+        } catch (error) {
+            console.error("Erro ao criar categoria:", error);
+        }
+    };
 
     return (
         <MainLayout>
@@ -15,7 +54,10 @@ const Categories = () => {
                     <h2 className="text-gray-700 font-semibold flex-grow text-center">
                         Categorias
                     </h2>
-                    <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 absolute right-0">
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 absolute right-0"
+                        onClick={() => setIsModalOpen(true)}
+                    >
                         Criar Categoria
                     </button>
                 </div>
@@ -24,28 +66,50 @@ const Categories = () => {
                     <table className="min-w-full border-collapse border border-gray-200">
                         <thead className="bg-gray-100">
                             <tr className="text-sm text-gray-700">
-                                <th className="border-b border-r border-gray-400 px-4 py-2 text-center rounded-tl-lg">Data</th>
-                                <th className="border-b border-gray-400 px-4 py-2 text-center rounded-tr-lg">Titulo</th>
+                                <th className="border-b border-r border-gray-400 px-4 py-2 text-center">Nome</th>
+                                <th className="border-b border-r border-gray-400 px-4 py-2 text-center">Criado Por</th>
+                                <th className="border-b border-gray-400 px-4 py-2 text-center">Data de Criação</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {historico.map((item) => (
-                                <tr
-                                    key={item.id}
-                                    className="hover:bg-gray-50 transition duration-150 ease-in-out"
-                                >
-                                    <td className="border border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
-                                        {item.data}
-                                    </td>
-                                    <td className="border border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
-                                        {item.descricao}
+                            {categories.length > 0 ? (
+                                categories.map((item) => (
+                                    <tr key={item.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
+                                        <td className="border border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
+                                            {item.name}
+                                        </td>
+                                        <td className="border border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
+                                            {item.createdBy?.username || "Desconhecido"}
+                                        </td>
+                                        <td className="border border-gray-300 text-gray-600 px-4 py-2 text-center text-sm">
+                                            {new Date(item.createdAt).toLocaleDateString("pt-BR")}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={3} className="text-center py-4 text-gray-500">
+                                        Nenhuma categoria encontrada
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            {/* Modal para criar categoria */}
+            <CategoryModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onCreateCategory={handleCreateCategory}
+            />
+
+            <SuccessModal 
+                isOpen={showSuccess} 
+                message="Categoria criada com sucesso!" 
+                onClose={() => setShowSuccess(false)}
+            />
         </MainLayout>
     );
 };
